@@ -1,0 +1,39 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build outputs
+build/
+dist/
+*.spec
+
+# Logs
+*.log
+debug_log.txt
+
+# Local config / secrets
+.env
+.env.*
+*.key
+*.pem
+*.token
+
+# Local app data examples
+.screenshot_translator_app_config.json
+.screenshot_translator_app_history.json
+.screenshot_translator_app_notebook.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

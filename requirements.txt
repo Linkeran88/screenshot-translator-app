@@ -1,0 +1,8 @@
+PyQt6
+pillow
+pytesseract
+deep-translator
+pynput
+mss
+pyinstaller
+pyttsx3

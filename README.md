@@ -16,18 +16,12 @@
 - 内置应用图标，可打包为 Windows `.exe`
 
 ## 项目截图
-
-建议上传项目后，在这里补充几张截图：
-
 ```markdown
 ## 项目截图
-
 ### 主界面
 ![主界面](docs/images/main.png)
-
 ### 设置中心
 ![设置中心](docs/images/settings.png)
-
 ### 翻译历史
 ![翻译历史](docs/images/history.png)
 ```

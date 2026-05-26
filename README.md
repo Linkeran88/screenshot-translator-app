@@ -29,7 +29,7 @@
 ![设置中心](docs/images/settings.png)
 
 ### 翻译历史
-![翻译历史]("C:\Users\Windows\Downloads\Compressed\screenshot-translator-app-github-ready\screenshot-translator-app-github-ready\docs\images\history.png")
+![翻译历史](docs/images/history.png)
 ```
 
 ## 环境要求

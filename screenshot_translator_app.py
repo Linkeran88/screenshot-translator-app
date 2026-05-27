@@ -53,6 +53,7 @@ class AppConfig:
     openai_model: str = "gpt-4o-mini"
     custom_api_url: str = ""
     custom_api_key: str = ""
+    argos_note: str = "使用前请运行 install_offline_translation.bat 安装本地翻译引擎和模型"
     save_history: bool = True
     max_history_items: int = 300
     tts_rate: int = 170
@@ -251,6 +252,7 @@ class LanguageDetector:
 class TranslationService:
     SERVICE_OPTIONS = [
         ("Google 免费源", "google"),
+        ("Argos 本地离线翻译", "argos"),
         ("DeepL API", "deepl"),
         ("Microsoft Translator API", "microsoft"),
         ("OpenAI API", "openai"),
@@ -261,6 +263,8 @@ class TranslationService:
     def normalize_service(service: str) -> str:
         mapping = {
             "Google 免费源": "google",
+            "Argos 本地离线翻译": "argos",
+            "Argos Offline": "argos",
             "DeepL API": "deepl",
             "Microsoft Translator API": "microsoft",
             "OpenAI API": "openai",
@@ -318,6 +322,53 @@ class TranslationService:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             raw = response.read().decode("utf-8")
             return json.loads(raw) if raw else {}
+
+    @staticmethod
+    def lang_for_argos(code: str) -> str:
+        mapping = {
+            "auto": "auto",
+            "zh-CN": "zh",
+            "en": "en",
+            "ja": "ja",
+            "ko": "ko",
+            "fr": "fr",
+            "de": "de",
+            "es": "es",
+        }
+        return mapping.get(code, code)
+
+    @staticmethod
+    def translate_with_argos(text: str, source: str, target: str, config) -> str:
+        try:
+            import argostranslate.translate
+        except Exception:
+            raise RuntimeError(
+                "Argos 本地离线翻译尚未安装。请先关闭 App，双击运行 install_offline_translation.bat；"
+                "安装完成后在设置中心选择“Argos 本地离线翻译”。"
+            )
+
+        if source == "auto":
+            source = "zh-CN" if LanguageDetector.contains_chinese(text) else "en"
+        from_code = TranslationService.lang_for_argos(source)
+        to_code = TranslationService.lang_for_argos(target)
+        if from_code == to_code:
+            return text
+
+        installed_languages = argostranslate.translate.get_installed_languages()
+        from_lang = next((lang for lang in installed_languages if lang.code == from_code), None)
+        to_lang = next((lang for lang in installed_languages if lang.code == to_code), None)
+        if from_lang is None or to_lang is None:
+            installed = ", ".join(sorted({lang.code for lang in installed_languages})) or "无"
+            raise RuntimeError(
+                f"未找到 Argos 离线语言模型：{from_code} -> {to_code}。\n"
+                f"当前已安装语言：{installed}\n"
+                "请运行 install_offline_translation.bat 自动安装中英模型，或下载 .argosmodel 后用 install_argos_model_file.bat 导入。"
+            )
+        try:
+            translation = from_lang.get_translation(to_lang)
+            return translation.translate(text)
+        except Exception as e:
+            raise RuntimeError(f"Argos 本地翻译失败：{e}")
 
     @staticmethod
     def translate_with_deepl(text: str, source: str, target: str, config) -> str:
@@ -424,6 +475,8 @@ class TranslationService:
         service = TranslationService.normalize_service(service)
         if service == "google":
             return GoogleTranslator(source=source, target=target).translate(text)
+        if service == "argos":
+            return TranslationService.translate_with_argos(text, source, target, config)
         if config is None:
             raise RuntimeError("该翻译源需要配置对象。")
         if service == "deepl":
@@ -1310,6 +1363,7 @@ class SettingsDialog(QDialog):
         form = QFormLayout()
         form.addRow("快捷键", self.hotkey_input)
         form.addRow("翻译服务", self.service_combo)
+        form.addRow("离线翻译", QLabel("选择 Argos 本地离线翻译前，请先运行 install_offline_translation.bat 安装模型"))
         form.addRow("DeepL API Key", self.deepl_key_input)
         form.addRow("DeepL API URL", self.deepl_url_input)
         form.addRow("Microsoft API Key", self.microsoft_key_input)

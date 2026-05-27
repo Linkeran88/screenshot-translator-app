@@ -5,6 +5,14 @@ cd /d "%~dp0"
 echo Starting Screenshot Translator...
 echo.
 
+REM Clear broken proxy variables such as 127.0.0.1:7897 before pip installs.
+set HTTP_PROXY=
+set HTTPS_PROXY=
+set ALL_PROXY=
+set http_proxy=
+set https_proxy=
+set all_proxy=
+
 where python >nul 2>nul
 if errorlevel 1 (
   echo Python was not found. Please install Python 3.10+ and check "Add Python to PATH".
@@ -23,11 +31,15 @@ if not exist ".venv\Scripts\python.exe" (
 )
 
 call ".venv\Scripts\activate.bat"
+python -m pip config unset global.proxy >nul 2>nul
+
 echo Installing dependencies...
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 if errorlevel 1 (
+  echo.
   echo Failed to install dependencies.
+  echo If you use proxy software, turn it on or run proxy_fix.bat first.
   pause
   exit /b 1
 )
